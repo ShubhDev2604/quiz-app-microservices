@@ -2,8 +2,11 @@ package in.lifehive.quiz_app.service;
 
 import in.lifehive.quiz_app.dao.QuestionDao;
 import in.lifehive.quiz_app.model.Question;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -15,36 +18,48 @@ public class QuestionService {
 
     private QuestionDao dao;
 
-    public List<Question> getAllQuestions() {
-        return dao.findAll();
+    public ResponseEntity<List<Question>> getAllQuestions() {
+        if(dao.count() != 0) {
+            return new ResponseEntity<>(dao.findAll(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.NOT_FOUND);
+        }
+
     }
 
-    public List<Question> getAllQuestionsByCategory(String category) {
-        return dao.findAllQuestionsByCategory(category);
+    public ResponseEntity<List<Question>> getAllQuestionsByCategory(String category) {
+        if(dao.count() != 0) {
+            return new ResponseEntity<>(dao.findAllQuestionsByCategory(category), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.NOT_FOUND);
+        }
     }
 
-    public String addQuestion(Question question) {
-        dao.save(question);
-        return "Addition done!";
+    public ResponseEntity<String> addQuestion(Question question) {
+        try {
+            dao.save(question);
+            return new ResponseEntity<>("Addition Done!", HttpStatus.CREATED);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    public String updateQuestion(Long id,Question question) {
+    public ResponseEntity<String> updateQuestion(Long id,Question question) {
         if(dao.existsById(id)) {
             dao.save(question);
-            return "Updation done!";
+            return new ResponseEntity<>("Updation done!", HttpStatus.OK);
         } else {
-            return "not found!";
+            return new ResponseEntity<>("not found!", HttpStatus.BAD_REQUEST);
         }
-
     }
 
-    public String deleteQuestion(Long id) {
+    public ResponseEntity<String> deleteQuestion(Long id) {
         if(dao.existsById(id)) {
             dao.deleteById(id);
-            return "deletion done!";
+            return new ResponseEntity<>("deletion done!", HttpStatus.OK);
         } else {
-            return "not found!";
+            return new ResponseEntity<>("not found!", HttpStatus.BAD_REQUEST);
         }
-
     }
 }
